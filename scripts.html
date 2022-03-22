@@ -1,0 +1,294 @@
+<!DOCTYPE HTML>
+<!--
+	BASED ON
+	Stellar by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+
+	ADAPTED BY
+	Kevin Canters
+-->
+<html>
+
+<head>
+	<title>Code Snippets</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="assets/css/main.css" />
+	<link rel="icon" type="image/png" href="images/favicon.png">
+	<noscript>
+		<link rel="stylesheet" href="assets/css/noscript.css" />
+	</noscript>
+</head>
+
+<body class="is-preload">
+
+	<!-- Wrapper -->
+	<div id="wrapper">
+
+		<!-- Header -->
+		<header id="header">
+			<h1>Code Snippets</h1>
+			<p>Example Code for Various Languages - Mostly Automation</p>
+		</header>
+
+		<!-- Main -->
+		<div id="main">
+
+			<!-- Content -->
+			<section id="content" class="main">
+				<h2>Disclaimer</h2>
+				<p>These snippets aren't meant to be very complex or show advanced skills. They are meant as bare
+					bones block of code from which you can build your own complex scripts to help you with automation.
+				</p>
+				<header class="major">
+					<h2>PowerShell</h2>
+				</header>
+				<h3>Confirmation Pop-Up</h3>
+				<p>
+					This snippet can be placed within a PowerShell script and be used as a pop-up to pause the script
+					and verify if things are running well.<br>
+					<i><b>Source:</b> <a
+							href="https://blogs.technet.microsoft.com/samdrey/2017/11/22/purepowershell-post-gui-pause-to-give-user-choice-to-continue-or-abort-a-powershell-script-execution/">SammyKrosoft</a></i>
+				</p>
+				<pre><code><span style="color: #0000ff;">Function</span><span style="color: #000000;"> </span><span
+    style="color: #795e26;">GUIPAUSE</span><span style="color: #000000;"> (</span><span
+    style="color: #001080;">$Message</span><span style="color: #000000;"> = </span><span
+    style="color: #a31515;">"Click OK to continue or CANCEL to exit script"</span><span
+    style="color: #000000;">, </span><span style="color: #001080;">$Title</span><span
+    style="color: #000000;"> = </span><span style="color: #a31515;">"Continue or Cancel"</span><span
+    style="color: #000000;">) {</span>
+<span style="color: #000000;">    </span><span style="color: #795e26;">Add-Type</span><span
+    style="color: #000000;"> -AssemblyName System.Windows.Forms | </span><span
+    style="color: #795e26;">Out-Null</span>
+<span style="color: #000000;">    </span><span style="color: #001080;">$MsgBox</span><span
+    style="color: #000000;"> = [</span><span
+    style="color: #0000ff;">System.Windows.Forms.MessageBox</span><span style="color: #000000;">]</span>
+<span style="color: #000000;">    </span><span style="color: #001080;">$Decision</span><span
+    style="color: #000000;"> = </span><span style="color: #001080;">$MsgBox</span><span
+    style="color: #000000;">::Show(</span><span style="color: #001080;">$Message</span><span
+    style="color: #000000;">,</span><span style="color: #001080;">$Title</span><span
+    style="color: #000000;">,</span><span style="color: #a31515;">"OkCancel"</span><span
+    style="color: #000000;">, </span><span style="color: #a31515;">"Information"</span><span
+    style="color: #000000;">)</span>
+<span style="color: #000000;">    </span><span style="color: #af00db;">If</span><span
+    style="color: #000000;"> (</span><span style="color: #001080;">$Decision</span><span
+    style="color: #000000;"> -eq </span><span style="color: #a31515;">"Cancel"</span><span
+    style="color: #000000;">) {</span><span style="color: #af00db;">exit</span><span
+    style="color: #000000;">}</span>
+<span style="color: #000000;">}</span></code></pre>
+				<h3>Refresh Excel Workbook</h3>
+				<p>
+					This snippet opens all Excel (xlsx) workbooks one by one, refreshes all connections, saves the file and closes it. <br>
+					Very useful when you have to refresh the data in multiple workbooks at once.
+				</p>
+				<pre><code><span style="color: #795e26;">Get-ChildItem</span><span style="color: #000000;"> </span><span style="color: #001080;">$pwd</span><span style="color: #795e26;">.Path</span><span style="color: #000000;"> -Filter *.xlsx | &#160; &#160;</span><span style="color: #008000;"># Loop over all xlsx-files on location (add -recurse for subfolders)</span><br><span style="color: #795e26;">Foreach-Object</span><span style="color: #000000;"> {</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$file</span><span style="color: #000000;"> = </span><span style="color: #001080;">$_</span><span style="color: #795e26;">.FullName</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$x1</span><span style="color: #000000;"> = </span><span style="color: #795e26;">New-Object</span><span style="color: #000000;"> -ComObject </span><span style="color: #a31515;">"Excel.Application"</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$x1</span><span style="color: #795e26;">.DisplayAlerts</span><span style="color: #000000;"> = </span><span style="color: #0000ff;">$false</span><span style="color: #000000;"> &#160; &#160; &#160; &#160; &#160; &#160; &#160;</span><span style="color: #008000;"># Ignore alerts</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$x1</span><span style="color: #795e26;">.AskToUpdateLinks</span><span style="color: #000000;"> = </span><span style="color: #0000ff;">$false</span><span style="color: #000000;"> &#160; &#160; &#160; &#160; &#160; </span><span style="color: #008000;"># Ignore update links popup</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$x1</span><span style="color: #795e26;">.Visible</span><span style="color: #000000;"> = </span><span style="color: #0000ff;">$true</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$wb</span><span style="color: #000000;"> = </span><span style="color: #001080;">$x1</span><span style="color: #795e26;">.workbooks.Open</span><span style="color: #000000;">(</span><span style="color: #001080;">$file</span><span style="color: #000000;">)</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #af00db;">if</span><span style="color: #000000;"> (</span><span style="color: #001080;">$wb</span><span style="color: #795e26;">.AutoSaveOn</span><span style="color: #000000;">) {</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">$wb</span><span style="color: #795e26;">.AutoSaveOn</span><span style="color: #000000;"> = </span><span style="color: #0000ff;">$false</span><span style="color: #000000;"> &#160; &#160; &#160; &#160; &#160; &#160; </span><span style="color: #008000;"># Disbable automatic save (SharePoint issues)</span><br><span style="color: #000000;">&#160; &#160; }</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$wb</span><span style="color: #795e26;">.Queries.FastCombine</span><span style="color: #000000;"> = </span><span style="color: #0000ff;">$true</span><span style="color: #000000;"> &#160; &#160; &#160; &#160; </span><span style="color: #008000;"># Ignore privacy levels</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$conn</span><span style="color: #000000;"> = </span><span style="color: #001080;">$wb</span><span style="color: #795e26;">.Connections</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$wb</span><span style="color: #795e26;">.refreshall</span><span style="color: #000000;">()</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #af00db;">while</span><span style="color: #000000;">(</span><span style="color: #001080;">$conn</span><span style="color: #000000;"> | </span><span style="color: #795e26;">ForEach-Object</span><span style="color: #000000;"> {</span><span style="color: #af00db;">if</span><span style="color: #000000;">(</span><span style="color: #001080;">$_</span><span style="color: #795e26;">.OLEDBConnection.Refreshing</span><span style="color: #000000;">){</span><span style="color: #0000ff;">$true</span><span style="color: #000000;">}}){</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #795e26;">Start-Sleep</span><span style="color: #000000;"> -Seconds </span><span style="color: #098658;">1</span><br><span style="color: #000000;">&#160; &#160; }</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$wb</span><span style="color: #795e26;">.Save</span><span style="color: #000000;">()</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$wb</span><span style="color: #795e26;">.Close</span><span style="color: #000000;">()</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$x1</span><span style="color: #795e26;">.Quit</span><span style="color: #000000;">()</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #795e26;">Remove-Variable</span><span style="color: #000000;"> wb,x1</span><br><span style="color: #000000;">} &#160; </span></code></pre>
+				<h3>Bulk Mailing</h3>
+				<p>
+					This snippet works with an array of <i>PSCustomObject</i>s that contain the needed mail info. 
+				</p>
+				<pre><code><span style="color: #001080;">$mail_array</span><span style="color: #000000;"> = </span><span style="color: #0000ff;">@</span><span style="color: #000000;">(</span><br><span style="color: #000000;">&#160; &#160; [</span><span style="color: #0000ff;">PSCustomObject</span><span style="color: #000000;">]</span><span style="color: #0000ff;">@</span><span style="color: #000000;">{</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">FILE</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"filename1.xlsx"</span><span style="color: #000000;">;</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">TO</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"person1@company.com"</span><span style="color: #000000;">;</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">CC</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"boss@company.com"</span><span style="color: #000000;">}</span><br><span style="color: #000000;">&#160; &#160; [</span><span style="color: #0000ff;">PSCustomObject</span><span style="color: #000000;">]</span><span style="color: #0000ff;">@</span><span style="color: #000000;">{</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">FILE</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"filename2.xlsx"</span><span style="color: #000000;">;</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">TO</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"person2@company.com"</span><span style="color: #000000;">;</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">CC</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"boss@company.com"</span><span style="color: #000000;">}</span><br><span style="color: #000000;">&#160; &#160; [</span><span style="color: #0000ff;">PSCustomObject</span><span style="color: #000000;">]</span><span style="color: #0000ff;">@</span><span style="color: #000000;">{</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">FILE</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"filename2.xlsx"</span><span style="color: #000000;">;</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">TO</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"person2@company.com"</span><span style="color: #000000;">;</span><br><span style="color: #000000;">&#160; &#160; &#160; &#160; </span><span style="color: #001080;">CC</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"boss@company.com"</span><span style="color: #000000;">}</span><br><span style="color: #000000;">)</span><br><br><span style="color: #af00db;">foreach</span><span style="color: #000000;">(</span><span style="color: #001080;">$object</span><span style="color: #000000;"> </span><span style="color: #af00db;">in</span><span style="color: #000000;"> </span><span style="color: #001080;">$mail_array</span><span style="color: #000000;">)</span><br><span style="color: #000000;">{</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$ol</span><span style="color: #000000;"> = </span><span style="color: #795e26;">New-Object</span><span style="color: #000000;"> -comObject Outlook.Application</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$mail</span><span style="color: #000000;"> = </span><span style="color: #001080;">$ol</span><span style="color: #795e26;">.CreateItem</span><span style="color: #000000;">(</span><span style="color: #098658;">0</span><span style="color: #000000;">)</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$mail</span><span style="color: #795e26;">.Subject</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"Subject Name"</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #008000;"># $mail.Body = "&lt;body&gt;"</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$mail</span><span style="color: #795e26;">.To</span><span style="color: #000000;"> = </span><span style="color: #001080;">$object</span><span style="color: #795e26;">.TO</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$mail</span><span style="color: #795e26;">.CC</span><span style="color: #000000;"> = </span><span style="color: #001080;">$object</span><span style="color: #795e26;">.CC</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$filelocation</span><span style="color: #000000;"> = </span><span style="color: #001080;">$pwd</span><span style="color: #795e26;">.Path</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\"</span><span style="color: #000000;"> + </span><span style="color: #001080;">$object</span><span style="color: #795e26;">.FILE</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$mail</span><span style="color: #795e26;">.Attachments.Add</span><span style="color: #000000;">(</span><span style="color: #001080;">$filelocation</span><span style="color: #000000;">) | </span><span style="color: #795e26;">Out-Null</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$account</span><span style="color: #000000;"> = </span><span style="color: #001080;">$ol</span><span style="color: #795e26;">.Session.Accounts.Item</span><span style="color: #000000;">(</span><span style="color: #a31515;">'sender.mailbox@company.com'</span><span style="color: #000000;">)</span><br><span style="color: #000000;">&#160; &#160; [</span><span style="color: #0000ff;">Void</span><span style="color: #000000;">] </span><span style="color: #001080;">$mail</span><span style="color: #795e26;">.GetType</span><span style="color: #000000;">().InvokeMember(</span><span style="color: #a31515;">"SendUsingAccount"</span><span style="color: #000000;">,</span><span style="color: #a31515;">"SetProperty"</span><span style="color: #000000;">,</span><span style="color: #0000ff;">$NULL</span><span style="color: #000000;">,</span><span style="color: #001080;">$mail</span><span style="color: #000000;">,</span><span style="color: #001080;">$account</span><span style="color: #000000;">)</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$inspector</span><span style="color: #000000;"> = </span><span style="color: #001080;">$mail</span><span style="color: #795e26;">.GetInspector</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #001080;">$inspector</span><span style="color: #795e26;">.Display</span><span style="color: #000000;">()</span><br><span style="color: #000000;">}</span></code></pre>
+				<h3>Backup Office/Explorer Settings</h3>
+				<p>
+					This snippet backups your Excel and Outlook macros, Outlook signatures, Office ribbon settings en Windows Explorer quick access pane.
+				</p>
+				<pre><code><span style="color: #008000;"># Location of files</span><br><span style="color: #001080;">$PersonalXLSB_Path</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:APPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Excel\XLSTART\PERSONAL.XLSB"</span><br><span style="color: #001080;">$QuickAccessFolders_Path</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:APPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Windows\Recent\AutomaticDestinations\f01b4d95cf55d32a.automaticDestinations-ms"</span><br><span style="color: #001080;">$OfficeSettings_Folder</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:LOCALAPPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Office"</span><br><span style="color: #001080;">$OutlookSettings_Folder</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:APPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Outlook"</span><br><span style="color: #001080;">$OutlookSignatures_Folder</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:APPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Signatures"</span><br><br><span style="color: #008000;"># Backup location</span><br><span style="color: #000000;">md -Force </span><span style="color: #a31515;">"H:\BackupSettings"</span><span style="color: #000000;"> | </span><span style="color: #795e26;">Out-Null</span><br><span style="color: #000000;">md -Force </span><span style="color: #a31515;">"H:\BackupSettings\Outlook"</span><span style="color: #000000;"> | </span><span style="color: #795e26;">Out-Null</span><br><span style="color: #000000;">md -Force </span><span style="color: #a31515;">"H:\BackupSettings\Outlook_Signatures"</span><span style="color: #000000;"> | </span><span style="color: #795e26;">Out-Null</span><br><br><span style="color: #008000;"># Copy files to backup location</span><br><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> </span><span style="color: #001080;">$PersonalXLSB_Path</span><span style="color: #000000;"> </span><span style="color: #a31515;">'H:\BackupSettings\PERSONAL.XLSB'</span><span style="color: #000000;"> -Force</span><br><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> </span><span style="color: #001080;">$QuickAccessFolders_Path</span><span style="color: #000000;"> </span><span style="color: #a31515;">'H:\BackupSettings\f01b4d95cf55d32a.automaticDestinations-ms'</span><span style="color: #000000;"> -Force</span><br><span style="color: #795e26;">Get-ChildItem</span><span style="color: #000000;"> </span><span style="color: #001080;">$OfficeSettings_Folder</span><span style="color: #000000;"> -Filter *.office* | </span><br><span style="color: #795e26;">Foreach-Object</span><span style="color: #000000;"> {</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> </span><span style="color: #001080;">$_</span><span style="color: #795e26;">.FullName</span><span style="color: #000000;"> -Destination </span><span style="color: #a31515;">"H:\BackupSettings"</span><span style="color: #000000;"> -Force</span><br><span style="color: #000000;">}</span><br><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> -Path </span><span style="color: #a31515;">"</span><span style="color: #001080;">$OutlookSettings_Folder</span><span style="color: #a31515;">\*"</span><span style="color: #000000;"> -Destination </span><span style="color: #a31515;">"H:\BackupSettings\Outlook"</span><span style="color: #000000;"> -Force -Recurse</span><br><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> -Path </span><span style="color: #a31515;">"</span><span style="color: #001080;">$OutlookSignatures_Folder</span><span style="color: #a31515;">\*"</span><span style="color: #000000;"> -Destination </span><span style="color: #a31515;">"H:\BackupSettings\Outlook_Signatures"</span><span style="color: #000000;"> -Force -Recurse</span></code></pre>
+				<h3>Restore Office/Explorer Settings</h3>
+				<p>
+					This snippet restores the backups from the previous scripts.
+				</p>
+				<pre><code><span style="color: #008000;"># Location of files</span><br><span style="color: #001080;">$PersonalXLSB_Path</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:APPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Excel\XLSTART\PERSONAL.XLSB"</span><br><span style="color: #001080;">$QuickAccessFolders_Path</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:APPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Windows\Recent\AutomaticDestinations\f01b4d95cf55d32a.automaticDestinations-ms"</span><br><span style="color: #001080;">$OfficeSettings_Folder</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:LOCALAPPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Office"</span><br><span style="color: #001080;">$OutlookSettings_Folder</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:APPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Outlook"</span><br><span style="color: #001080;">$OutlookSignatures_Folder</span><span style="color: #000000;"> = </span><span style="color: #001080;">$env:APPDATA</span><span style="color: #000000;"> + </span><span style="color: #a31515;">"\Microsoft\Signatures"</span><br><br><span style="color: #008000;"># Copy to original location</span><br><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> </span><span style="color: #a31515;">'H:\BackupSettings\PERSONAL.XLSB'</span><span style="color: #000000;"> </span><span style="color: #001080;">$PersonalXLSB_Path</span><span style="color: #000000;"> -Force</span><br><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> </span><span style="color: #a31515;">'H:\BackupSettings\f01b4d95cf55d32a.automaticDestinations-ms'</span><span style="color: #000000;"> </span><span style="color: #001080;">$QuickAccessFolders_Path</span><span style="color: #000000;"> -Force</span><br><span style="color: #795e26;">Get-ChildItem</span><span style="color: #000000;"> </span><span style="color: #a31515;">"H:\BackupSettings"</span><span style="color: #000000;"> -Filter *.office* | </span><br><span style="color: #795e26;">Foreach-Object</span><span style="color: #000000;"> {</span><br><span style="color: #000000;">&#160; &#160; </span><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> </span><span style="color: #001080;">$_</span><span style="color: #795e26;">.FullName</span><span style="color: #000000;"> -Destination </span><span style="color: #001080;">$OfficeSettings_Folder</span><span style="color: #000000;"> -Force</span><br><span style="color: #000000;">}</span><br><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> -Path </span><span style="color: #a31515;">"H:\BackupSettings\Outlook\*"</span><span style="color: #000000;"> -Destination </span><span style="color: #001080;">$OutlookSettings_Folder</span><span style="color: #000000;"> -Force -Recurse</span><br><span style="color: #795e26;">Copy-Item</span><span style="color: #000000;"> -Path </span><span style="color: #a31515;">"H:\BackupSettings\Outlook_Signatures\*"</span><span style="color: #000000;"> -Destination </span><span style="color: #001080;">$OutlookSignatures_Folder</span><span style="color: #000000;"> -Force -Recurse</span></code></pre>
+				<header class="major">
+					<h2>VBA</h2>
+				</header>
+				<h3>Email Location in Outlook</h3>
+				<p>
+					This snippet will return you the folderpath of an email you've selected in Outlook and give you the
+					possibility of opening that specific path.<br>
+					<i><b>Source:</b> <a
+							href="https://community.spiceworks.com/topic/524374-find-the-folder-path-of-a-message-in-outlook">Chris2741</a></i>
+				</p>
+				<pre><code><span style="color: #0000ff;">Public Sub </span><span
+        style="color: #795e26;">GetItemsFolderPath</span><span style="color: #000000;">()</span>
+<span style="color: #000000;">    </span><span style="color: #0000ff;">Dim</span><span
+        style="color: #001080;"> obj </span><span style="color: #000000;">As </span><span
+        style="color: #267f99;">Object</span>
+<span style="color: #000000;">    </span><span style="color: #0000ff;">Dim</span><span
+        style="color: #001080;"> F </span><span style="color: #000000;">As </span><span
+        style="color: #267f99;">Outlook</span><span style="color: #000000;">.MAPIFolder</span>
+<span style="color: #000000;">    </span><span style="color: #0000ff;">Dim</span><span
+        style="color: #001080;"> Msg</span><span style="color: #000000;">$</span>
+<span style="color: #000000;">    </span><span style="color: #0000ff;">Set </span><span
+        style="color: #001080;">obj</span><span style="color: #000000;"> = </span><span
+        style="color: #267f99;">Application</span><span style="color: #000000;">.ActiveWindow</span>
+<span style="color: #000000;">    </span><span style="color: #af00db;">If</span><span
+        style="color: #000000;"> TypeOf obj Is Outlook.Inspector </span><span
+        style="color: #af00db;">Then</span>
+<span style="color: #000000;">        </span><span
+        style="color: #0000ff;">Set </span><span style="color: #001080;">obj</span><span
+        style="color: #000000;"> = obj.CurrentItem</span>
+<span style="color: #000000;">    </span><span style="color: #af00db;">Else</span>
+<span style="color: #000000;">        </span><span
+        style="color: #0000ff;">Set </span><span style="color: #001080;">obj</span><span
+        style="color: #000000;"> = obj.</span><span style="color: #795e26;">Selection</span><span
+        style="color: #000000;">(</span><span style="color: #098658;">1</span><span style="color: #000000;">)</span>
+<span style="color: #000000;">    </span><span style="color: #af00db;">End If</span>
+<span style="color: #000000;">    </span><span style="color: #0000ff;">Set </span><span
+        style="color: #001080;">F</span><span style="color: #000000;"> = obj.Parent</span>
+<span style="color: #000000;">    </span><span style="color: #001080;">Msg</span><span
+        style="color: #000000;"> = </span><span
+        style="color: #a31515;">"The path is: "</span><span
+        style="color: #000000;"> &amp; F.</span><span style="color: #001080;">FolderPath</span><span
+        style="color: #000000;"> &amp;</span><span style="color: #001080;"> vbCrLf</span>
+<span style="color: #000000;">    </span><span style="color: #001080;">Msg</span><span
+        style="color: #000000;"> =</span><span style="color: #001080;"> Msg</span><span
+        style="color: #000000;"> &amp; </span><span
+        style="color: #a31515;">"Switch to the folder?"</span>
+<span style="color: #000000;">    </span><span style="color: #af00db;">If</span><span
+        style="color: #000000;"> </span><span style="color: #795e26;">MsgBox</span><span
+        style="color: #000000;">(</span><span style="color: #001080;">Msg</span><span
+        style="color: #000000;">,</span><span style="color: #001080;"> vbYesNo</span><span
+        style="color: #000000;">) =</span><span style="color: #001080;"> vbYes</span><span
+        style="color: #000000;"> </span><span style="color: #af00db;">Then</span>
+<span style="color: #000000;">        </span><span
+        style="color: #0000ff;">Set </span><span style="color: #267f99;">Application</span><span
+        style="color: #000000;">.ActiveExplorer.</span><span style="color: #001080;">CurrentFolder</span><span
+        style="color: #000000;"> =</span><span style="color: #001080;"> F</span>
+<span style="color: #000000;">    </span><span style="color: #af00db;">End If</span>
+<span style="color: #0000ff;">End Sub</span></code></pre>
+				<h3>Create Email with Attachments</h3>
+				<p>
+					This snippet wil create an email with recipient and body, as well as adding attachments.
+				</p>
+				<pre><code><span style="color: #0000ff;">Sub</span><span style="color: #000000;"> </span><span
+    style="color: #795e26;">MakeMail</span><span style="color: #000000;">()</span><br>
+<span style="color: #0000ff;">    Dim</span><span style="color: #001080;"> msgapp</span><span style="color: #000000;"> As </span><span style="color: #267f99;">Outlook</span><span
+    style="color: #000000;">.</span><span style="color: #267f99;">Application</span>
+<span style="color: #000000;"></span><span style="color: #0000ff;">    Dim</span><span style="color: #001080;"> Msg </span><span style="color: #000000;">As </span><span style="color: #267f99;">Outlook</span><span
+    style="color: #000000;">.mailItem</span>
+<span style="color: #000000;"></span><span style="color: #0000ff;">    Dim</span><span style="color: #001080;"> FileLocation </span><span style="color: #000000;">As </span><span style="color: #267f99;">String</span>
+<span style="color: #000000;"></span>
+<span style="color: #000000;"></span><span style="color: #0000ff;">    Set </span><span
+    style="color: #001080;">msgapp</span><span style="color: #000000;"> = </span><span
+    style="color: #795e26;">CreateObject</span><span style="color: #000000;">(</span><span
+    style="color: #a31515;">"Outlook.Application"</span><span style="color: #000000;">)</span>
+<span style="color: #000000;"></span><span style="color: #0000ff;">    Set </span><span
+    style="color: #001080;">Msg</span><span style="color: #000000;"> = </span><span
+    style="color: #267f99;">Application</span><span style="color: #000000;">.</span><span
+    style="color: #795e26;">CreateItem</span><span style="color: #000000;">(</span><span
+    style="color: #001080;">olMailItem</span><span style="color: #000000;">)</span>
+<span style="color: #000000;"></span>
+<span style="color: #000000;"></span><span style="color: #001080;">    FileLocation</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"C:\Data\Workbook.xlsx"</span>
+<span style="color: #000000;"></span>
+<span style="color: #000000;"></span><span style="color: #af00db;">    With</span><span style="color: #000000;"> Msg</span>
+<span style="color: #000000;">        .Display</span>
+<span style="color: #000000;">        .</span><span style="color: #001080;">Subject</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"Subject of Your Email"</span>
+<span style="color: #000000;">        .</span><span style="color: #af00db;">To</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"recipient@email.com"</span>
+<span style="color: #000000;">        </span><span style="color: #001080;">strbody</span><span style="color: #000000;"> = </span><span style="color: #a31515;">"&lt;p style='font-family:arial;font-size:14.5'&gt;Dear Sir/Madam, &lt;br&gt;&lt;br&gt;"</span><span style="color: #000000;"> _</span>
+<span style="color: #000000;">        </span><span style="color: #a31515;">"Body of your email.&lt;/p&gt;"</span>
+<span style="color: #000000;">        .</span><span style="color: #001080;">HTMLBody</span><span style="color: #000000;"> =</span><span style="color: #001080;"> strbody</span><span style="color: #000000;"> &amp; .HTMLBody</span>
+<span style="color: #000000;">        .Attachments.</span><span style="color: #795e26;">Add</span><span
+    style="color: #000000;"> (</span><span style="color: #001080;">FileLocation</span><span
+    style="color: #000000;">)</span>
+<span style="color: #000000;">        </span><span style="color: #008000;">'SendUsingAccount is new in Office 2007</span>
+<span style="color: #000000;">        </span><span style="color: #008000;">'Change Item(1)to the account number that you want to use</span>
+<span style="color: #000000;">        .</span><span style="color: #001080;">SendUsingAccount</span><span
+    style="color: #000000;"> = msgapp.</span><span style="color: #267f99;">Session</span><span
+    style="color: #000000;">.Accounts.</span><span style="color: #795e26;">Item</span><span
+    style="color: #000000;">(</span><span style="color: #098658;">2</span><span style="color: #000000;">)</span>
+<span style="color: #000000;">        .</span><span style="color: #001080;">HTMLBody</span><span style="color: #000000;"> = </span><span style="color: #795e26;">Replace</span><span style="color: #000000;">(.HTMLBody, </span><span
+    style="color: #a31515;">"&lt;o:p&gt;&amp;nbsp;&lt;/o:p&gt;"</span><span style="color: #000000;">, </span><span
+    style="color: #a31515;">""</span><span style="color: #000000;">)</span>
+<span style="color: #000000;">    </span><span style="color: #795e26;">End</span><span style="color: #000000;"> </span><span style="color: #af00db;">With</span><br>
+<span style="color: #000000;">    </span><span style="color: #0000ff;">Set </span><span
+    style="color: #001080;">Msg</span><span style="color: #000000;"> =</span><span style="color: #0000ff;"> Nothing</span>
+<span style="color: #000000;">    </span><span style="color: #0000ff;">Set </span><span
+    style="color: #001080;">msgapp</span><span style="color: #000000;"> =</span><span style="color: #0000ff;"> Nothing</span>
+<span style="color: #000000;"> </span>
+<span style="color: #0000ff;">End Sub</span></code></pre>
+				<header class="major">
+					<h2>Power Query M</h2>
+				</header>
+				<h3>Dynamic Calendar</h3>
+				<p>
+					This code will create a dynamic calendar based on the dates in your data. This is useful in a
+					datamodel where you need a calendar-table that gives full years for the available data. Main use is
+					in Excel where the CALENDAR DAX function (to create a new table) isn't available.
+				</p>
+				<h4>Based on Years</h4>
+				<pre><code><span style="color: #0000ff;">let</span>
+    <span style="color: #000000;">StartYear = List.Min(#"NameDatatable"[YearColumn]),</span>
+    <span style="color: #000000;">EndYear = List.Max(#"NameDatatable"[YearColumn]),</span>
+    <span style="color: #000000;">NumberOfDays = Duration.Days(#</span><span style="color: #0000ff;">date</span><span style="color: #000000;">(EndYear, </span><span style="color: #098658;">12</span><span style="color: #000000;">, </span><span style="color: #098658;">31</span><span style="color: #000000;">) - #</span><span style="color: #0000ff;">date</span><span style="color: #000000;">(StartYear, </span><span style="color: #098658;">1</span><span style="color: #000000;">, </span><span style="color: #098658;">1</span><span style="color: #000000;">)) + </span><span style="color: #098658;">1</span><span style="color: #000000;">,</span>
+    <span style="color: #000000;">Calendar = List.Dates(#</span><span style="color: #0000ff;">date</span><span style="color: #000000;">(StartYear, </span><span style="color: #098658;">1</span><span style="color: #000000;">, </span><span style="color: #098658;">1</span><span style="color: #000000;">), NumberOfDays, #</span><span style="color: #0000ff;">duration</span><span style="color: #000000;">(</span><span style="color: #098658;">1</span><span style="color: #000000;">, </span><span style="color: #098658;">0</span><span style="color: #000000;">, </span><span style="color: #098658;">0</span><span style="color: #000000;">, </span><span style="color: #098658;">0</span><span style="color: #000000;">))</span>
+<span style="color: #0000ff;">in</span>
+    <span style="color: #000000;">Calendar</span></code></pre>
+				<h4>Based on Dates</h4>
+				<pre><code><span style="color: #0000ff;">let</span>
+    <span style="color: #000000;">StartYear = Date.Year(List.Min(#"NameDatatable"[DateColumn])),</span>
+    <span style="color: #000000;">EndYear = Date.Year(List.Max(#"NameDatatable"[DateColumn])),</span>
+    <span style="color: #000000;">NumberOfDays = Duration.Days(#</span><span style="color: #0000ff;">date</span><span style="color: #000000;">(EndYear, </span><span style="color: #098658;">12</span><span style="color: #000000;">, </span><span style="color: #098658;">31</span><span style="color: #000000;">) - #</span><span style="color: #0000ff;">date</span><span style="color: #000000;">(StartYear, </span><span style="color: #098658;">1</span><span style="color: #000000;">, </span><span style="color: #098658;">1</span><span style="color: #000000;">)) + </span><span style="color: #098658;">1</span><span style="color: #000000;">,</span>
+    <span style="color: #000000;">Calendar = List.Dates(#</span><span style="color: #0000ff;">date</span><span style="color: #000000;">(StartYear, </span><span style="color: #098658;">1</span><span style="color: #000000;">, </span><span style="color: #098658;">1</span><span style="color: #000000;">), NumberOfDays, #</span><span style="color: #0000ff;">duration</span><span style="color: #000000;">(</span><span style="color: #098658;">1</span><span style="color: #000000;">, </span><span style="color: #098658;">0</span><span style="color: #000000;">, </span><span style="color: #098658;">0</span><span style="color: #000000;">, </span><span style="color: #098658;">0</span><span style="color: #000000;">))</span>
+<span style="color: #0000ff;">in</span>
+    <span style="color: #000000;">Calendar</span></code></pre>
+				<h3>Location Agnostic Query</h3>
+				<p>
+					These steps will allow you to make a query that can be location agnostic. When you place your sources folder 
+					on the same level as your file, you can just place it anywhere you want. <br> <br>
+
+					First you need a cell that refers to the current workbook location by using this formula (also gives this cell a name like FILEPATH): 
+				</p>
+				<pre><code>=LEFT(CELL("filename";A1);FIND("[";CELL("filename";A1);1)-1)</code></pre>
+				<p>
+					When you have this named cell, you can refer to it in Power Query and use it to have dynamic filepaths: 
+				</p>
+				<pre><code><span style="color: #0000ff;">let</span><br><span style="color: #000000;">&#160; &#160; CurrentDirectory = Excel.CurrentWorkbook(){[Name=</span><span style="color: #a31515;">"FILEPATH"</span><span style="color: #000000;">]}[Content]{</span><span style="color: #098658;">0</span><span style="color: #000000;">}[Column1],</span><br><span style="color: #000000;">&#160; &#160; FilePath = CurrentDirectory &amp; </span><span style="color: #a31515;">"Sources\Transactions.xlsx"</span><span style="color: #000000;">,</span><br><span style="color: #000000;">&#160; &#160; Source = Excel.Workbook(File.Contents(FilePath), </span><span style="color: #0000ff;">null</span><span style="color: #000000;">, </span><span style="color: #0000ff;">true</span><span style="color: #000000;">),</span><br><span style="color: #000000;">&#160; &#160; TransactionTable = Bron{[Item=</span><span style="color: #a31515;">"TransactionTable"</span><span style="color: #000000;">,Kind=</span><span style="color: #a31515;">"Table"</span><span style="color: #000000;">]}[Data]</span><br><span style="color: #0000ff;">in</span><span style="color: #000000;"> </span><br><span style="color: #000000;">&#160; &#160; TransactionTable</span></code></pre>
+			</section>
+		</div>
+
+		<!-- Footer -->
+		<footer id="footer">
+<!-- 			<section>
+				<h2>Aliquam sed mauris</h2>
+				<p>Sed lorem ipsum dolor sit amet et nullam consequat feugiat consequat magna adipiscing tempus etiam
+					dolore veroeros. eget dapibus mauris. Cras aliquet, nisl ut viverra sollicitudin, ligula erat
+					egestas velit, vitae tincidunt odio.</p>
+				<ul class="actions">
+					<li><a href="#" class="button">Learn More</a></li>
+				</ul>
+			</section>
+			<section>
+				<h2>Contact Information</h2>
+				<dl class="alt">
+					<dt>Address</dt>
+					<dd>1234 Somewhere Road &bull; Nashville, TN 00000 &bull; USA</dd>
+					<dt>Phone</dt>
+					<dd>(000) 000-0000 x 0000</dd>
+					<dt>Email</dt>
+					<dd><a href="mailto:kevin.canters@scarlet.be">kevin.canters@scarlet.be</a></dd>
+				</dl>
+				<ul class="icons">
+					<li><a href="https://linkedin.com/in/kevin-canters" class="icon brands fa-linkedin alt"><span
+								class="label">LinkedIn</span></a></li>
+					<li><a href="https://github.com/kevincanters" class="icon brands fa-github alt"><span
+								class="label">GitHub</span></a></li>
+					<li><a href="#" class="icon brands fa-dribbble alt"><span class="label">Dribbble</span></a></li>
+				</ul>
+			</section> -->
+			<p class="copyright">&copy; Kevin Canters. Design: <a href="https://html5up.net">HTML5 UP</a> & Myself.</p>
+		</footer>
+
+	</div>
+
+	<!-- Scripts -->
+	<script src="assets/js/jquery.min.js"></script>
+	<script src="assets/js/jquery.scrollex.min.js"></script>
+	<script src="assets/js/jquery.scrolly.min.js"></script>
+	<script src="assets/js/browser.min.js"></script>
+	<script src="assets/js/breakpoints.min.js"></script>
+	<script src="assets/js/util.js"></script>
+	<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
