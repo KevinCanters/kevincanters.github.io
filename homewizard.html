@@ -798,6 +798,19 @@
 
     <div class="sheet-divider"></div>
 
+    <!-- Interval offset -->
+    <div class="setting-group">
+      <div class="setting-label">15-min Interval Offset</div>
+      <div class="setting-desc">Seconds after each quarter-hour when your meter resets its 15-min window. For example, enter 10 if your meter resets at :00:10, :15:10, :30:10, :45:10.</div>
+      <div class="text-field" style="margin-top:4px">
+        <input type="number" id="offset-input" placeholder="e.g. 10" inputmode="numeric" min="0" max="899">
+      </div>
+      <button class="btn-primary" id="save-offset-btn">Save Offset</button>
+      <div class="save-confirm" id="offset-confirm"></div>
+    </div>
+
+    <div class="sheet-divider"></div>
+
         <!-- About -->
     <div class="setting-group">
       <div class="setting-label">About</div>
@@ -817,7 +830,8 @@
   // ── State ──
   let API_IP   = store.get('grid_ip', '192.168.0.150');
   let isDark   = store.get('grid_theme', 'dark') === 'dark';
-  let peakThreshold = parseInt(store.get('grid_threshold', '2500'), 10);
+  let peakThreshold   = parseInt(store.get('grid_threshold', '2500'), 10);
+  let intervalOffset  = parseInt(store.get('grid_interval_offset', '0'), 10);
   const INTERVAL   = 1000;
   const HISTORY_MS = 2 * 60 * 1000;
 
@@ -847,8 +861,10 @@
   function openSheet() {
     $('ip-input').value = API_IP;
     $('threshold-input').value = peakThreshold;
+    $('offset-input').value = intervalOffset;
     $('save-confirm').textContent = '';
     $('threshold-confirm').textContent = '';
+    $('offset-confirm').textContent = '';
     $('modal-scrim').classList.add('open');
     $('settings-sheet').classList.add('open');
   }
@@ -883,6 +899,15 @@
     updateThresholdLine();
     $('threshold-confirm').textContent = '✓ Threshold saved';
     setTimeout(() => $('threshold-confirm').textContent = '', 1500);
+  });
+
+  $('save-offset-btn').addEventListener('click', () => {
+    const val = parseInt($('offset-input').value, 10);
+    if (isNaN(val) || val < 0 || val > 899) return;
+    intervalOffset = val;
+    store.set('grid_interval_offset', String(val));
+    $('offset-confirm').textContent = '✓ Offset saved';
+    setTimeout(() => $('offset-confirm').textContent = '', 1500);
   });
 
   // ── Helpers ──
@@ -1060,7 +1085,8 @@
       ? '15-min avg (so far): ' + fmt(d.active_power_average_w) + ' W' : '';
 
     const now = new Date();
-    const slotSeconds = (now.getMinutes() % 15) * 60 + now.getSeconds();
+    const rawSlot = (now.getMinutes() % 15) * 60 + now.getSeconds();
+    const slotSeconds = (rawSlot - intervalOffset + 900) % 900;
     if (d.active_power_average_w !== undefined && slotSeconds > 0) {
       const projected = Math.round((d.active_power_average_w * 900) / slotSeconds);
       $('power-projected').textContent = 'Projected peak: ' + projected + ' W';
