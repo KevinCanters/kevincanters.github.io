@@ -5,7 +5,6 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Grid Monitor</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <script>/*!
  * Chart.js v4.5.1
  * https://www.chartjs.org
@@ -41,9 +40,6 @@
     --export-container: rgba(76,175,80,0.12);
     --export-on:        #c8e6c9;
 
-    --tariff-day:    #ffd54f;
-    --tariff-night:  #9575cd;
-
     --shape-xs:  8px;
     --shape-sm:  12px;
     --shape-md:  16px;
@@ -51,7 +47,6 @@
     --shape-xl:  28px;
 
     --elev-1: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
-    --elev-2: 0 3px 6px rgba(0,0,0,.4), 0 2px 4px rgba(0,0,0,.3);
     --elev-modal: 0 8px 32px rgba(0,0,0,.6);
   }
 
@@ -73,7 +68,6 @@
     --export-on:        #1b5e20;
 
     --elev-1: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-    --elev-2: 0 3px 6px rgba(0,0,0,.10), 0 2px 4px rgba(0,0,0,.08);
     --elev-modal: 0 8px 32px rgba(0,0,0,.15);
   }
 
@@ -269,7 +263,7 @@
   .exporting .direction-chip { background: var(--export-container); border-color: rgba(76,175,80,0.3);  color: var(--export-on); }
 
   .chip-icon { font-size: 16px; line-height: 1; }
-  .power-avg { font-size: 12px; color: var(--md-on-muted); margin-top: 2px; transition: color 0.3s; }
+
 
   .phase-divider { height: 1px; background: var(--md-outline); margin: 14px -20px; transition: background 0.3s; }
 
@@ -626,17 +620,16 @@
         <span class="chip-icon" id="chip-icon">⚡</span>
         <span id="direction-text">Connecting…</span>
       </div>
-      <div class="power-avg" id="power-avg"></div>
-      <div class="power-avg" id="power-projected"></div>
+
       <div class="phase-divider"></div>
       <div class="phase-row">
         <div class="phase-item">
-          <div class="phase-val shimmer" id="voltage-l1">—</div>
-          <div class="phase-lbl">Voltage</div>
+          <div class="phase-val shimmer" id="power-avg">—</div>
+          <div class="phase-lbl">Average Peak</div>
         </div>
         <div class="phase-item">
-          <div class="phase-val shimmer" id="current-l1">—</div>
-          <div class="phase-lbl">Current</div>
+          <div class="phase-val shimmer" id="power-projected">—</div>
+          <div class="phase-lbl">Projected Peak</div>
         </div>
         <div class="phase-item">
           <div class="phase-val shimmer" id="peak-w">—</div>
@@ -1083,21 +1076,28 @@
     $('direction-text').textContent = exporting ? 'Exporting to grid' : 'Importing from grid';
 
     $('power-avg').textContent = d.active_power_average_w !== undefined
-      ? '15-min avg (so far): ' + fmt(d.active_power_average_w) + ' W' : '';
+      ? fmt(d.active_power_average_w) + ' W' : '—';
 
     const now = new Date();
     const rawSlot = (now.getMinutes() % 15) * 60 + now.getSeconds();
     const slotSeconds = (rawSlot - intervalOffset + 900) % 900;
+    const projectedEl = $('power-projected');
     if (d.active_power_average_w !== undefined && slotSeconds > 0) {
       const projected = Math.round((d.active_power_average_w * 900) / slotSeconds);
-      $('power-projected').textContent = 'Projected peak: ' + projected + ' W';
+      projectedEl.textContent = projected + ' W';
+      if (projected >= peakThreshold) {
+        projectedEl.style.color = 'var(--import)';
+      } else if (projected >= peakThreshold * 0.9) {
+        projectedEl.style.color = 'rgba(255,213,79,1)';
+      } else {
+        projectedEl.style.color = '';
+      }
     } else {
-      $('power-projected').textContent = '';
+      projectedEl.textContent = '—';
+      projectedEl.style.color = '';
     }
 
-    $('voltage-l1').textContent = fmt(d.active_voltage_l1_v, 1) + ' V';
-    $('current-l1').textContent = fmt(d.active_current_l1_a, 2) + ' A';
-    $('peak-w').textContent     = fmt(d.montly_power_peak_w) + ' W';
+    $('peak-w').textContent = fmt(d.montly_power_peak_w) + ' W';
 
     const imp = d.total_power_import_kwh ?? 0;
     const exp = d.total_power_export_kwh ?? 0;
