@@ -1142,6 +1142,13 @@
   applyTheme(isDark);
   poll();
   setInterval(poll, INTERVAL);
+
+  // ── Fix chart size on bfcache restore ──
+  window.addEventListener('pageshow', e => {
+    if (e.persisted) {
+      powerChart.resize();
+    }
+  });
 </script>
 </body>
 </html>
