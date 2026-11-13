@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solar forecast</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cg%20stroke='%23f2a516'%20stroke-width='2.6'%20stroke-linecap='round'%3E%3Cpath%20d='M26%2016h4M23.1%2023.1l2.8%202.8M16%2026v4M8.9%2023.1l-2.8%202.8M6%2016H2M8.9%208.9L6.1%206.1M16%206V2M23.1%208.9l2.8-2.8'/%3E%3C/g%3E%3Ccircle%20cx='16'%20cy='16'%20r='6.5'%20fill='%23f2a516'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#eef3f6; --surface:#ffffff; --ink:#12232e; --muted:#566b78; --line:#d3dfe6;
+  --sun:#e8920c; --sun-fill:rgba(232,146,12,.24); --band:rgba(70,120,160,.18);
+  --good:#1b8556; --fair:#a86d08; --poor:#5f7381; --window:rgba(27,133,86,.14);
+  --focus:#1c6fb8;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1820; --surface:#14232d; --ink:#e8f0f4; --muted:#93a8b5; --line:#263a46;
+    --sun:#f5b335; --sun-fill:rgba(245,179,53,.26); --band:rgba(120,170,210,.2);
+    --good:#4cc790; --fair:#e0a53a; --poor:#8ea0ad; --window:rgba(76,199,144,.17);
+    --focus:#7ab8f0;
+  }
+}
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+    --bg:#0d1820; --surface:#14232d; --ink:#e8f0f4; --muted:#93a8b5; --line:#263a46;
+    --sun:#f5b335; --sun-fill:rgba(245,179,53,.26); --band:rgba(120,170,210,.2);
+    --good:#4cc790; --fair:#e0a53a; --poor:#8ea0ad; --window:rgba(76,199,144,.17);
+    --focus:#7ab8f0;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 40px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between}
+.top h1{margin:0;font-size:1.15rem;font-weight:600;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.btns{display:flex;gap:12px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted)}
+select,input,button.refresh{font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px}
+input{width:7.5rem}
+button.refresh{cursor:pointer;font-weight:600}
+button.refresh:hover{border-color:var(--muted)}
+button.icon{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;min-width:40px}
+button.icon svg{display:block}
+
+.hero{margin:22px 0 18px}
+.herocard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px 14px;display:grid;grid-template-columns:1fr auto;gap:14px 36px;align-items:end}
+.herocard .lbl{margin:0 0 2px;font-size:.9rem;color:var(--muted)}
+.herocard .window{margin:0;font-size:clamp(2.2rem,7vw,3.4rem);font-weight:800;letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums}
+.herocard .window.none{font-size:clamp(1.5rem,5vw,2.1rem);color:var(--poor)}
+.stats{display:flex;gap:32px;margin:0}
+.stats dt{font-size:.85rem;color:var(--muted)}
+.stats dd{margin:2px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+.stats .v{display:block;font-size:1.35rem;line-height:1.25;white-space:nowrap}
+.stats .u{display:block;font-size:.8rem;font-weight:400;color:var(--muted);white-space:nowrap}
+.note{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;border-top:1px solid var(--line);padding-top:10px;font-size:.9rem;color:var(--muted)}
+.note button{font:inherit;color:var(--ink);background:none;border:0;border-bottom:2px solid var(--sun);padding:0;cursor:pointer;font-weight:600}
+@media (max-width:640px){
+  .herocard{grid-template-columns:1fr;padding:16px}
+  .stats{display:grid;grid-template-columns:repeat(3,auto);justify-content:space-between;gap:10px}
+  .controls{display:grid;grid-template-columns:1fr 1fr;width:100%}
+  .controls select,.controls input{width:100%}
+  .btns{grid-column:1/-1}
+  .btns .refresh:last-child{flex:1}
+}
+.badge{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.badge::before{content:"";width:.7em;height:.7em;border-radius:50%;background:currentColor}
+.good{color:var(--good)} .fair{color:var(--fair)} .poor{color:var(--poor)}
+
+.strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scroll-snap-type:x proximity}
+.day{flex:0 0 112px;scroll-snap-align:start;text-align:left;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 10px 9px;cursor:pointer}
+.day[aria-pressed="true"]{border-color:var(--sun);box-shadow:inset 0 0 0 1px var(--sun)}
+.day .d1{font-weight:600;font-size:.95rem}
+.day .d2{color:var(--muted);font-size:.8rem}
+.day svg{display:block;width:100%;height:34px;margin:6px 0 4px}
+.day svg path{fill:var(--sun-fill);stroke:var(--sun);stroke-width:1.4;vector-effect:non-scaling-stroke}
+.day .y{font-size:.88rem;font-weight:600;font-variant-numeric:tabular-nums}
+.day .r{font-size:.78rem}
+
+.chartbox{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 6px 6px;margin-top:6px}
+.chartbox svg{display:block}
+.tip-pop{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:.82rem;padding:5px 8px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-100%);display:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:6px 10px 4px;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
+.help{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:2px 16px}
+.help summary{cursor:pointer;font-weight:600;font-size:1.02rem;padding:12px 0;list-style:none;display:flex;align-items:center;gap:10px}
+.help summary::-webkit-details-marker{display:none}
+.help summary::before{content:"";flex:none;width:.5em;height:.5em;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);margin:0 .25em 0 .2em}
+.help[open] summary::before{transform:rotate(45deg)}
+.help .body{padding:0 0 12px;max-width:68ch;font-size:.95rem}
+.help h2{margin:18px 0 4px;font-size:1rem;font-weight:600}
+.help p{margin:0 0 8px}
+.help dl{margin:0}
+.help dt{font-weight:600;margin-top:10px}
+.help dd{margin:2px 0 0;color:var(--muted)}
+.help ol{margin:0 0 8px;padding-left:1.2rem}
+.help li{margin-bottom:4px}
+#status:empty{min-height:0;margin:0}
+#status{min-height:1.4em;margin:10px 0 0;font-size:.92rem;color:var(--muted)}
+#status.err{color:var(--ink);background:var(--surface);border:1px solid var(--fair);border-radius:8px;padding:10px 12px}
+#status button{font:inherit;margin-left:8px}
+footer{margin-top:22px;font-size:.82rem;color:var(--muted);max-width:68ch}
+footer a{color:inherit}
+</style>
+<script>try{var t=localStorage.getItem('sf.theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Solar forecast &ndash; <span id="regionName">East Flanders</span></h1>
+    <div class="controls">
+      <label class="field">Region
+        <select id="region"></select>
+      </label>
+      <label class="field">My system (kWp, optional)
+        <input id="kwp" type="number" inputmode="decimal" min="0" step="0.1" placeholder="e.g. 5.4">
+      </label>
+      <div class="btns">
+        <button class="refresh icon" id="theme" type="button"></button>
+        <button class="refresh" id="refresh" type="button">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="status" role="status" aria-live="polite">Loading forecast…</div>
+
+  <section class="hero" id="hero" aria-live="polite"></section>
+
+  <div class="strip" id="strip" role="group" aria-label="Forecast days"></div>
+
+  <div class="chartbox" id="chartbox">
+    <div id="chart"></div>
+    <div class="tip-pop" id="pop"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <details class="help" id="help">
+    <summary>How to use this page</summary>
+    <div class="body">
+      <p>This page forecasts how much electricity solar panels in your region will produce over the coming days, so you can run the dishwasher, washing machine or EV charger when the sun is out instead of when it isn’t.</p>
+
+      <h2>Getting started</h2>
+      <ol>
+        <li>Pick your <strong>region</strong>. East Flanders is selected by default.</li>
+        <li>Optional: enter the size of your solar installation in <strong>kWp</strong> (it’s on your inverter or installation papers). Numbers then show in kWh and kW for your own system instead of relative figures.</li>
+        <li>Read the big time range at the top: that is the best moment of the day to run heavy appliances.</li>
+        <li>Click another day in the row of day cards to see its forecast. If a better day is coming up, a link under the headline jumps to it.</li>
+      </ol>
+
+      <h2>What you’re looking at</h2>
+      <dl>
+        <dt>Best window</dt>
+        <dd>The longest stretch of the day when expected output is at least 70% of that day’s peak. It is highlighted in green on the chart.</dd>
+
+        <dt>Expected yield</dt>
+        <dd>How much energy the whole day should produce. Without a system size it is shown as kWh/kWp, meaning kWh per installed kilowatt of panels. Multiply by your kWp to get your own figure, or enter it above.</dd>
+
+        <dt>Peak</dt>
+        <dd>The highest output expected that day, as a share of installed capacity (or in kW once you enter your system size).</dd>
+
+        <dt>Good, Fair, Poor</dt>
+        <dd>A quick label that compares the day’s expected yield with a typical clear day for the time of year. Good is a sunny day, Poor is a dark or rainy one. In winter even a Good day produces little in absolute terms.</dd>
+
+        <dt>Day cards</dt>
+        <dd>Each card has a small curve of the day’s output, drawn on the same scale for every day, so taller curves mean more sun. An asterisk (*) means the forecast for that day is still incomplete.</dd>
+
+        <dt>Chart</dt>
+        <dd>The orange line is the forecast through the day. The light blue band is the likely range: Elia expects the real value to fall inside it about 8 times out of 10. The dashed dark line shows what was actually measured for hours that have passed, and the dashed vertical line marks the current time. Hover or tap the chart to read exact values.</dd>
+      </dl>
+
+      <h2>Good to know</h2>
+      <p>The figures are averages for the whole region, based on many installations. Your own panels may produce more or less because of their direction, tilt and shade. Forecasts further ahead are less certain than tomorrow’s, and clouds can shift the best window by an hour or two, so check back on the day itself. The data refreshes automatically every 15 minutes; the Refresh button fetches it right away.</p>
+    </div>
+  </details>
+
+  <footer>
+    Source: <a href="https://opendata.elia.be/explore/dataset/ods210/" target="_blank" rel="noopener">Elia Open Data, PV forecast (ods210)</a>,
+    refreshed every quarter-hour. Values are province-wide averages scaled to the capacity Elia monitors;
+    your roof (orientation, tilt, shading) will differ. Day ratings compare the expected yield with a rough clear-day
+    figure for the month.
+  </footer>
+</div>
+
+<script>
+'use strict';
+const DATASET = 'ods210';
+const API = `https://opendata.elia.be/api/explore/v2.1/catalog/datasets/${DATASET}/records`;
+const TZ = 'Europe/Brussels';
+const REGIONS = [
+  ['Belgium','All of Belgium'],['Antwerpen','Antwerp'],['BrabantWallon','Walloon Brabant'],['Brussel','Brussels'],
+  ['Hainaut','Hainaut'],['Liege','Liège'],['Limburg','Limburg'],['Luxembourg','Luxembourg'],['Namur','Namur'],
+  ['OostVlaanderen','East Flanders'],['VlaamsBrabant','Flemish Brabant'],['WestVlaanderen','West Flanders']
+];
+// Rough clear-day yield (kWh/kWp) per month, Jan..Dec. Only used for the Good/Fair/Poor label; tune to taste.
+const REF_YIELD = [1.8,2.7,3.8,4.8,5.4,5.8,5.6,5.0,4.0,2.8,1.9,1.4];
+const REFRESH_MS = 15 * 60 * 1000;
+// Your system size in kWp. Used when nothing is saved in the browser (e.g. a file opened from a phone's file manager).
+const DEFAULT_KWP = 0;
+
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch {} }
+};
+const state = {
+  region: store.get('sf.region', 'OostVlaanderen'),
+  kwp: parseFloat(store.get('sf.kwp', '')) || DEFAULT_KWP,
+  days: [], sel: 0, cap: 0, updated: null, token: 0
+};
+const $ = id => document.getElementById(id);
+const els = { region:$('region'), kwp:$('kwp'), refresh:$('refresh'), status:$('status'), hero:$('hero'),
+  strip:$('strip'), chart:$('chart'), box:$('chartbox'), pop:$('pop'), legend:$('legend'), regionName:$('regionName') };
+
+/* ---------- time helpers ---------- */
+const dayKeyFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year:'numeric', month:'2-digit', day:'2-digit' });
+const hmFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
+const wdFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, weekday:'short' });
+const dmFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, day:'numeric', month:'short' });
+const hmOf = d => { const p = hmFmt.formatToParts(d); return +p.find(x => x.type === 'hour').value + +p.find(x => x.type === 'minute').value / 60; };
+const fmtHM = h => { const t = Math.round(h * 60); return String(Math.floor(t / 60) % 24).padStart(2,'0') + ':' + String(t % 60).padStart(2,'0'); };
+const num = v => {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  const n = parseFloat(String(v).replace(',', '.'));
+  return isFinite(n) ? n : null;
+};
+const todayKey = () => dayKeyFmt.format(new Date());
+
+/* ---------- data ---------- */
+async function fetchRows(region){
+  const [y,m,d] = todayKey().split('-').map(Number);
+  const start = new Date(Date.UTC(y, m - 1, d - 1, 22, 0, 0)).toISOString(); // covers local midnight in CET/CEST
+  const where = total => `region="${region}"` + (total ? ' AND gridconnectiontype="Total"' : '') + ` AND datetime>="${start}"`;
+  async function page(w, offset){
+    const u = new URL(API);
+    u.searchParams.set('where', w);
+    u.searchParams.set('order_by', 'datetime');
+    u.searchParams.set('limit', '100');
+    u.searchParams.set('offset', String(offset));
+    const r = await fetch(u);
+    if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(`Elia API answered ${r.status}. ${t.slice(0,180)}`); }
+    return r.json();
+  }
+  async function all(w){
+    const first = await page(w, 0);
+    let res = first.results || [];
+    const total = first.total_count || res.length;
+    const jobs = [];
+    for (let o = 100; o < total && o < 9900; o += 100) jobs.push(page(w, o));
+    (await Promise.all(jobs)).forEach(j => { res = res.concat(j.results || []); });
+    return res;
+  }
+  let rows = await all(where(true));
+  if (!rows.length) rows = await all(where(false));
+  return rows;
+}
+
+function parse(rows){
+  const hasTotal = rows.some(r => String(r.gridconnectiontype || '').toLowerCase() === 'total');
+  const seen = new Map();
+  let cap = 0;
+  for (const r of rows){
+    if (hasTotal && String(r.gridconnectiontype || '').toLowerCase() !== 'total') continue;
+    const t = Date.parse(r.datetime);
+    if (!isFinite(t)) continue;
+    const keys = Object.keys(r);
+    const find = f => keys.find(k => f(k.toLowerCase()));
+    const fc = ['mostrecentforecast','dayaheadforecast','dayplustenforecast','weekaheadforecast']
+      .map(k => num(r[k])).find(v => v != null) ?? null;
+    const k10 = find(k => k.startsWith('mostrecent') && k.endsWith('10'));
+    const k90 = find(k => k.startsWith('mostrecent') && k.endsWith('90'));
+    const km  = find(k => k.startsWith('measured'));
+    const row = { t, fc, p10: k10 ? num(r[k10]) : null, p90: k90 ? num(r[k90]) : null,
+                  meas: km ? num(r[km]) : null, cap: num(r.monitoredcapacity) };
+    if (row.fc == null && row.meas == null) continue;
+    seen.set(t, row);
+  }
+  const series = [...seen.values()].sort((a, b) => a.t - b.t);
+  for (const s of series) if (s.cap) cap = s.cap;
+  return { series, cap };
+}
+
+function build(series, cap){
+  const today = todayKey();
+  const diffs = [];
+  for (let i = 1; i < series.length; i++) diffs.push(series[i].t - series[i-1].t);
+  diffs.sort((a, b) => a - b);
+  const step = diffs.length ? (diffs[Math.floor(diffs.length / 2)] / 3.6e6) || .25 : .25;
+
+  const by = new Map();
+  for (const s of series){
+    const k = dayKeyFmt.format(new Date(s.t));
+    if (k < today) continue;
+    if (!by.has(k)) by.set(k, []);
+    by.get(k).push(s);
+  }
+  const days = [...by.entries()].map(([key, slots]) => {
+    slots.forEach(s => {
+      s.c = s.cap || cap;
+      s.lf = (s.fc != null && s.c) ? s.fc / s.c : null;
+      s.h = hmOf(new Date(s.t));
+    });
+    const fcs = slots.filter(s => s.fc != null);
+    const mwh = fcs.reduce((a, s) => a + s.fc * step, 0);
+    const yld = cap ? fcs.reduce((a, s) => a + (s.lf || 0) * step, 0) : null;
+    const peak = fcs.reduce((b, s) => (!b || s.fc > b.fc) ? s : b, null);
+    const peakMw = peak ? peak.fc : 0;
+    const peakLf = cap && peak ? peak.lf : null;
+
+    // best window = longest contiguous stretch at >= 70% of the day's peak
+    let win = null;
+    if (peak && (cap ? peak.lf >= 0.03 : peakMw > 0)){
+      const thr = peakMw * 0.7;
+      let run = [], best = [];
+      for (const s of fcs){
+        const contiguous = run.length && Math.abs((s.t - run[run.length-1].t) / 3.6e6 - step) < 1e-6;
+        if (s.fc >= thr){
+          if (run.length && !contiguous) run = [];
+          run.push(s);
+          if (run.length > best.length) best = run.slice();
+        } else run = [];
+      }
+      if (best.length) win = { s: best[0].h, e: best[best.length-1].h + step };
+    }
+    const month = parseInt(key.slice(5, 7), 10);
+    const frac = yld != null ? yld / REF_YIELD[month - 1] : null;
+    const rating = frac == null ? null : frac >= .55 ? 'Good' : frac >= .25 ? 'Fair' : 'Poor';
+    const partial = slots.length < (24 / step) * 0.8;
+    return { key, slots, step, mwh, yld, peakMw, peakLf, win, rating, partial, score: yld ?? mwh };
+  });
+  return days;
+}
+
+/* ---------- formatting ---------- */
+const kwp = () => state.kwp > 0 ? state.kwp : 0;
+const hasCap = () => state.cap > 0;
+const yieldParts = d => d.yld == null ? [String(Math.round(d.mwh)), 'MWh']
+  : kwp() ? [(d.yld * kwp()).toFixed(1), 'kWh'] : [d.yld.toFixed(1), 'kWh/kWp'];
+const peakParts = d => d.peakLf == null ? [String(Math.round(d.peakMw)), 'MW']
+  : kwp() ? [(d.peakLf * kwp()).toFixed(1), 'kW'] : [Math.round(d.peakLf * 100) + '%', 'of capacity'];
+const fmtYield = d => yieldParts(d).join(' ');
+const fmtPeak = d => peakParts(d).join(' ');
+const dayLabel = (d, i) => {
+  const dt = new Date(d.slots[0].t);
+  const base = `${wdFmt.format(dt)} ${dmFmt.format(dt)}`;
+  return d.key === todayKey() ? 'Today' : (i === 1 && d.key === nextKey()) ? 'Tomorrow' : base;
+};
+const nextKey = () => dayKeyFmt.format(new Date(Date.now() + 24 * 3600e3));
+const fullLabel = (d, i) => {
+  const dt = new Date(d.slots[0].t);
+  return `${wdFmt.format(dt)} ${dmFmt.format(dt)}`;
+};
+const ratingClass = r => r === 'Good' ? 'good' : r === 'Fair' ? 'fair' : 'poor';
+
+/* ---------- render ---------- */
+function render(){
+  const days = state.days;
+  els.regionName.textContent = (REGIONS.find(r => r[0] === state.region) || [0, state.region])[1];
+  if (!days.length){ els.hero.innerHTML = ''; els.strip.innerHTML = ''; els.chart.innerHTML = ''; els.legend.innerHTML = ''; return; }
+  if (state.sel >= days.length) state.sel = 0;
+
+  // hero
+  const d = days[state.sel];
+  const bestIdx = days.reduce((b, x, i) => (!x.partial && (b < 0 || x.score > days[b].score)) ? i : b, -1);
+  const isToday = d.key === todayKey();
+  const passed = isToday && d.win && d.win.e < hmOf(new Date());
+  const stat = (k, v, u = '') => `<div><dt>${k}</dt><dd><span class="v">${v}</span>${u ? `<span class="u">${u}</span>` : ''}</dd></div>`;
+  let html = `<div class="herocard"><div class="hl"><p class="lbl">${d.win ? 'Best window' : 'Forecast'} · ${fullLabel(d, state.sel)}</p>`;
+  html += d.win ? `<p class="window">${fmtHM(d.win.s)}–${fmtHM(d.win.e)}</p>` : `<p class="window none">No useful solar</p>`;
+  html += `</div><dl class="stats">${stat('Expected', ...yieldParts(d))}${stat('Peak', ...peakParts(d))}`
+        + `${d.rating ? stat('Outlook', `<span class="badge ${ratingClass(d.rating)}">${d.rating}</span>`) : ''}</dl>`;
+  const notes = [];
+  if (passed) notes.push('Today’s window has already passed.');
+  if (d.partial) notes.push('Forecast for this day is incomplete.');
+  if (bestIdx >= 0 && bestIdx !== state.sel) notes.push(`Best day ahead: <button type="button" data-pick="${bestIdx}">${fullLabel(days[bestIdx], bestIdx)}</button> (${fmtYield(days[bestIdx])}).`);
+  else if (bestIdx === state.sel && days.length > 1) notes.push('This is the best day in the forecast.');
+  html += `<div class="note"><span>${notes.join(' ')}</span>${state.updated ? `<span class="upd">Updated ${fmtHM(hmOf(state.updated))}</span>` : ''}</div></div>`;
+  els.hero.innerHTML = html;
+
+  // strip
+  const val = s => hasCap() ? s.lf : s.fc;
+  const maxV = Math.max(1e-6, ...days.flatMap(x => x.slots.map(val).filter(v => v != null)));
+  els.strip.innerHTML = days.map((x, i) => {
+    const dt = new Date(x.slots[0].t);
+    const d1 = dayLabel(x, i);
+    const d2 = d1 === 'Today' || d1 === 'Tomorrow' ? `${wdFmt.format(dt)} ${dmFmt.format(dt)}` : '';
+    const pts = x.slots.filter(s => val(s) != null && s.h >= 4 && s.h <= 22);
+    let svg = '';
+    if (pts.length > 1){
+      const px = h => ((h - 4) / 18 * 100).toFixed(1);
+      const py = v => (30 - (v / maxV) * 28).toFixed(1);
+      let p = `M${px(pts[0].h)},30`;
+      pts.forEach(s => { p += ` L${px(s.h)},${py(val(s))}`; });
+      p += ` L${px(pts[pts.length-1].h)},30 Z`;
+      svg = `<svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="${p}"/></svg>`;
+    }
+    return `<button type="button" class="day" data-i="${i}" aria-pressed="${i === state.sel}">
+      <div class="d1">${d1}</div><div class="d2">${d2 || '&nbsp;'}</div>${svg}
+      <div class="y">${fmtYield(x)}${x.partial ? '*' : ''}</div>
+      ${x.rating ? `<div class="r"><span class="badge ${ratingClass(x.rating)}">${x.rating}</span></div>` : ''}
+    </button>`;
+  }).join('');
+
+  drawChart();
+}
+
+function drawChart(){
+  const d = state.days[state.sel];
+  const box = els.chart;
+  if (!d){ box.innerHTML = ''; return; }
+  const W = Math.max(280, els.box.clientWidth - 12);
+  const H = W < 520 ? 230 : 300;
+  const m = { l: W < 520 ? 40 : 48, r: 12, t: 16, b: 26 };
+  const cap = state.cap;
+  const conv = (mw, c) => {
+    if (mw == null) return null;
+    if (cap){ const lf = mw / (c || cap); return kwp() ? lf * kwp() : lf * 100; }
+    return mw;
+  };
+  const unit = cap ? (kwp() ? 'kW' : '% of capacity') : 'MW';
+  const pts = d.slots.map(s => ({ h: s.h, fc: conv(s.fc, s.c), lo: conv(s.p10, s.c), hi: conv(s.p90, s.c), me: conv(s.meas, s.c) }));
+
+  const fcMax = Math.max(0, ...pts.map(p => p.fc ?? 0));
+  const active = pts.filter(p => p.fc != null && p.fc > fcMax * 0.03 && fcMax > 0);
+  let hmin = active.length ? Math.max(0, Math.floor(Math.min(...active.map(p => p.h))) - 1) : 6;
+  let hmax = active.length ? Math.min(24, Math.ceil(Math.max(...active.map(p => p.h))) + 2) : 20;
+  if (hmax - hmin < 6){ hmin = Math.max(0, hmin - 2); hmax = Math.min(24, hmax + 2); }
+
+  const top = Math.max(0, ...pts.flatMap(p => [p.fc, p.hi, p.me].filter(v => v != null))) * 1.08;
+  const nice = v => { if (v <= 0) return 1; const e = Math.pow(10, Math.floor(Math.log10(v))); const f = v / e;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 4 ? 4 : f <= 5 ? 5 : f <= 8 ? 8 : 10) * e; };
+  const ymax = nice(top);
+  const x = h => m.l + (h - hmin) / (hmax - hmin) * (W - m.l - m.r);
+  const y = v => H - m.b - (v / ymax) * (H - m.t - m.b);
+  const inR = p => p.h >= hmin && p.h <= hmax;
+
+  const line = key => {
+    let p = '', on = false;
+    for (const q of pts){
+      if (q[key] == null || !inR(q)){ on = false; continue; }
+      p += `${on ? 'L' : 'M'}${x(q.h).toFixed(1)},${y(q[key]).toFixed(1)} `;
+      on = true;
+    }
+    return p;
+  };
+  const fcPts = pts.filter(p => p.fc != null && inR(p));
+  const area = fcPts.length > 1
+    ? `M${x(fcPts[0].h).toFixed(1)},${y(0)} ` + fcPts.map(p => `L${x(p.h).toFixed(1)},${y(p.fc).toFixed(1)}`).join(' ') + ` L${x(fcPts[fcPts.length-1].h).toFixed(1)},${y(0)} Z` : '';
+  const bandPts = pts.filter(p => p.lo != null && p.hi != null && inR(p));
+  const band = bandPts.length > 1
+    ? 'M' + bandPts.map(p => `${x(p.h).toFixed(1)},${y(p.hi).toFixed(1)}`).join(' L')
+      + ' L' + bandPts.slice().reverse().map(p => `${x(p.h).toFixed(1)},${y(p.lo).toFixed(1)}`).join(' L') + ' Z' : '';
+  const hasMeas = pts.some(p => p.me != null && inR(p));
+
+  let g = '';
+  for (let i = 0; i <= 4; i++){
+    const v = ymax / 4 * i;
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
+    g += `<text x="${m.l - 6}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--muted)">${Number(v.toFixed(2))}</text>`;
+  }
+  const tickEvery = W < 420 ? 3 : 2;
+  for (let h = Math.ceil(hmin / tickEvery) * tickEvery; h <= hmax; h += tickEvery){
+    g += `<text x="${x(h).toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--muted)">${String(h).padStart(2,'0')}:00</text>`;
+  }
+  let win = '';
+  if (d.win) win = `<rect x="${x(d.win.s).toFixed(1)}" y="${m.t}" width="${(x(d.win.e) - x(d.win.s)).toFixed(1)}" height="${H - m.t - m.b}" fill="var(--window)"/>`;
+  let now = '';
+  if (d.key === todayKey()){
+    const nh = hmOf(new Date());
+    if (nh >= hmin && nh <= hmax) now = `<line x1="${x(nh).toFixed(1)}" x2="${x(nh).toFixed(1)}" y1="${m.t}" y2="${H - m.b}" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="4 3"/><text x="${(x(nh) + 4).toFixed(1)}" y="${m.t + 10}" font-size="11" fill="var(--muted)">now</text>`;
+  }
+  const label = `Forecast for ${fullLabel(d, state.sel)}: ${fmtYield(d)}, peak ${fmtPeak(d)}` + (d.win ? `, best window ${fmtHM(d.win.s)} to ${fmtHM(d.win.e)}` : '');
+  box.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}">
+    <text x="${m.l}" y="11" font-size="11" fill="var(--muted)">${unit}</text>
+    ${g}${win}
+    ${band ? `<path d="${band}" fill="var(--band)"/>` : ''}
+    ${area ? `<path d="${area}" fill="var(--sun-fill)"/>` : ''}
+    <path d="${line('fc')}" fill="none" stroke="var(--sun)" stroke-width="2.4" stroke-linejoin="round"/>
+    ${hasMeas ? `<path d="${line('me')}" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="5 3"/>` : ''}
+    ${now}
+    <line id="hov" y1="${m.t}" y2="${H - m.b}" stroke="var(--ink)" stroke-width="1" opacity="0"/>
+    <rect id="hit" x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="transparent"/>
+  </svg>`;
+
+  els.legend.innerHTML =
+    `<span><i style="background:var(--sun)"></i>Forecast</span>` +
+    (band ? `<span><i style="background:var(--band)"></i>Likely range (P10–P90)</span>` : '') +
+    (hasMeas ? `<span><i style="background:var(--ink)"></i>Measured</span>` : '') +
+    (d.win ? `<span><i style="background:var(--window);border:1px solid var(--good)"></i>Best window</span>` : '');
+
+  // hover readout
+  const hit = box.querySelector('#hit'), hov = box.querySelector('#hov'), pop = els.pop;
+  const fmtV = v => v == null ? '–' : (cap ? (kwp() ? v.toFixed(2) + ' kW' : Math.round(v) + '%') : Math.round(v) + ' MW');
+  const move = ev => {
+    const r = box.querySelector('svg').getBoundingClientRect();
+    const h = hmin + (ev.clientX - r.left - m.l) / (W - m.l - m.r) * (hmax - hmin);
+    let best = null;
+    for (const p of pts) if (inR(p) && (best === null || Math.abs(p.h - h) < Math.abs(best.h - h))) best = p;
+    if (!best) return;
+    hov.setAttribute('x1', x(best.h)); hov.setAttribute('x2', x(best.h)); hov.setAttribute('opacity', '.35');
+    let txt = `${fmtHM(best.h)} · ${fmtV(best.fc)}`;
+    if (best.lo != null && best.hi != null) txt += ` (${fmtV(best.lo)}–${fmtV(best.hi)})`;
+    if (best.me != null) txt += ` · measured ${fmtV(best.me)}`;
+    pop.textContent = txt;
+    pop.style.display = 'block';
+    const br = els.box.getBoundingClientRect();
+    pop.style.left = Math.min(Math.max(x(best.h) + 6, 70), br.width - 70) + 'px';
+    pop.style.top = (y(best.fc ?? 0) + 10) + 'px';
+  };
+  const leave = () => { hov.setAttribute('opacity', '0'); pop.style.display = 'none'; };
+  hit.addEventListener('pointermove', move);
+  hit.addEventListener('pointerdown', move);
+  hit.addEventListener('pointerleave', leave);
+}
+
+/* ---------- loading ---------- */
+function setStatus(msg, isErr, retry){
+  els.status.className = isErr ? 'err' : '';
+  els.status.textContent = msg;
+  if (retry){
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = 'Try again'; b.addEventListener('click', load);
+    els.status.appendChild(b);
+  }
+}
+async function load(){
+  const token = ++state.token;
+  setStatus('Loading forecast…');
+  els.refresh.disabled = true;
+  try {
+    const rows = await fetchRows(state.region);
+    if (token !== state.token) return;
+    const { series, cap } = parse(rows);
+    if (!series.length) throw new Error(`No forecast rows came back for “${state.region}”. Elia may have changed the dataset fields or region names; check ${DATASET} on opendata.elia.be.`);
+    state.cap = cap;
+    const prevKey = state.days[state.sel] && state.days[state.sel].key;
+    state.days = build(series, cap);
+    const keep = state.days.findIndex(d => d.key === prevKey);
+    state.sel = keep >= 0 ? keep : 0;
+    state.updated = new Date();
+    render();
+    setStatus('');
+  } catch (e){
+    if (token !== state.token) return;
+    const offline = e instanceof TypeError;
+    setStatus(offline
+      ? 'Could not reach Elia (network or browser blocked the request). Check your connection and open this file in a regular browser tab.'
+      : String(e.message || e), true, true);
+  } finally {
+    if (token === state.token) els.refresh.disabled = false;
+  }
+}
+
+/* ---------- wiring ---------- */
+els.region.innerHTML = REGIONS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
+els.region.value = REGIONS.some(r => r[0] === state.region) ? state.region : 'OostVlaanderen';
+state.region = els.region.value;
+if (state.kwp) els.kwp.value = state.kwp;
+
+els.region.addEventListener('change', () => { state.region = els.region.value; store.set('sf.region', state.region); state.sel = 0; state.days = []; load(); });
+els.kwp.addEventListener('input', () => { const v = parseFloat(els.kwp.value); state.kwp = v > 0 ? v : 0; store.set('sf.kwp', state.kwp || ''); render(); });
+els.refresh.addEventListener('click', load);
+els.strip.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b){ state.sel = +b.dataset.i; render(); } });
+els.hero.addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (b){ state.sel = +b.dataset.pick; render(); } });
+new ResizeObserver(() => { if (state.days.length) drawChart(); }).observe(els.box);
+
+/* ---------- light / dark toggle ---------- */
+const themeBtn = $('theme');
+const sysDark = window.matchMedia('(prefers-color-scheme: dark)');
+const ICON_MOON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+const ICON_SUN = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const theme = () => document.documentElement.dataset.theme || (sysDark.matches ? 'dark' : 'light');
+function syncThemeBtn(){
+  const dark = theme() === 'dark';
+  themeBtn.innerHTML = dark ? ICON_SUN : ICON_MOON;
+  const label = dark ? 'Switch to light mode' : 'Switch to dark mode';
+  themeBtn.setAttribute('aria-label', label);
+  themeBtn.title = label;
+}
+themeBtn.addEventListener('click', () => {
+  const next = theme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  store.set('sf.theme', next);
+  syncThemeBtn();
+});
+sysDark.addEventListener('change', syncThemeBtn);
+syncThemeBtn();
+setInterval(load, REFRESH_MS);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && (!state.updated || Date.now() - state.updated > REFRESH_MS)) load(); });
+load();
+</script>
+</body>
+</html>
